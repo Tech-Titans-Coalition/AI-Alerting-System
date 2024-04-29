@@ -20,8 +20,8 @@ prefix = '/opt/ml/'
 model_path = os.path.join(prefix, 'model')
 logging.basicConfig(level=logging.INFO)
 
-# A singleton for holding the model. This simply loads the model and holds it.
-# It has a predict function that does a prediction based on the model and the input data.
+# A predictor model that can be adjusted to whatver type of data format you would 
+# like to feed. Opened up for customization to user's needs.
 
 class ScoringService(object):
     model = {}               
