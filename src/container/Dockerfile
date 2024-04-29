@@ -15,5 +15,5 @@ ENV PYTHONDONTWRITEBYTECODE=TRUE
 ENV PATH="/opt/program:${PATH}"
 ENV MODEL_PATH="/opt/ml/model"
 
-COPY algorithm_code /opt/program
+COPY algorithm /opt/program
 WORKDIR /opt/program
