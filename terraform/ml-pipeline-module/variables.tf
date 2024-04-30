@@ -36,7 +36,6 @@ variable s3_bucket_output_models_path {
 variable "s3_object_json_data" {
   description = "The S3 object key of the JSON data file"
   type        = string
-  default     = "/mnt/c/Users/Taylor/Machine-Learning-Pipeline-SageMaker/data/meteorite.json"
 }
 
 variable lambda_function_name {

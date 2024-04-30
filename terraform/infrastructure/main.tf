@@ -14,9 +14,11 @@ module "ml-pipeline" {
   handler = var.handler
   lambda_folder = local.lambda_folder
   lambda_zip_filename = local.lambda_zip_filename
+  s3_object_json_data = local.s3_object_json_data
 }
 
 output "ecr_repository_url" {
   value = module.ml-pipeline.ecr_repository_url
   description = "ECR URL for the Docker Image"
 }
+
