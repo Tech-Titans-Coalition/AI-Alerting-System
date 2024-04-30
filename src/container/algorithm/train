@@ -11,7 +11,7 @@ import pandas as pd
 from sklearn import tree
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score, KFold
+from sklearn.model_selection import cross_val_score, KFold, GridSearchCV
 from numpy import mean, std 
 
 # These are the paths to where SageMaker mounts interesting things in your container.
@@ -45,6 +45,8 @@ def train():
                               'the data specification in S3 was incorrectly specified or the role specified\n' +
                               'does not have permission to access the data.').format(training_path, channel_name))
         logging.info('Loading dataset')
+        # This needs to be modified based on the input file format
+        # raw_data = [ pd.read_json(file) for file in input_files ]
         raw_data = [ pd.read_csv(file, header=None) for file in input_files ]
         train_data = pd.concat(raw_data)
 
@@ -57,29 +59,31 @@ def train():
         scaler = StandardScaler()
         train_X = scaler.fit_transform(train_X)
 
-        # Here we support multiple hyperparameters. Note that hyperparameters are always passed in as
-        # strings, so we need to do any necessary conversions.
-        n_estimators = trainingParams.get('n_estimators', 100)
-        max_depth = trainingParams.get('max_depth', None)
+        # Defining the Hyperparameter grid for Random Forest
+        param_grid = {
+            'n_estimators': trainingParams.get('n_estimators', [50, 100, 150]),
+            'max_depth': trainingParams.get('max_depth', [None, 10, 20, 30])
+        }
+        
+        clf = RandomForestClassifier()
 
-        if n_estimators is not None:
-            n_estimators = int(n_estimators)
-        if max_depth is not None:
-            max_depth = int(max_depth)
-
-        # Now use scikit-learn's decision tree classifier to train the model.
-        clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
+        # Defining the grid search
+        grid_search = GridSearchCV(estimator=clf, param_grid=param_grid, n_jobs=-1, cv=5)
         logging.info('Training the model')
-        clf = clf.fit(train_X, train_y)
-
-        # Define the cross-validation procedure
+        grid_search.fit(train_X, train_y)
+        
+        # Report the best parameters
+        logging.info('Best parameters: {}'.format(grid_search.best_params_))
+        
+        # Output the best model
+        clf = grid_search.best_estimator_
+        
+        # Evaluate the model and Cross-Validation
         cv = KFold(n_splits=10, random_state=1, shuffle=True)
+        n_scores = cross_val_score(clf, train_X, train_y, scoring='accuracy', cv=cv, n_jobs=-1)
 
         # Report the model performance
         logging.info('Accuracy: %.3f (%.3f)' % (mean(n_scores), std(n_scores)))
-
-        # Evaluate the model
-        n_scores = cross_val_score(clf, train_X, train_y, scoring='accuracy', cv=cv, n_jobs=-1)
 
         # Save the model
         logging.info('Saving the model')

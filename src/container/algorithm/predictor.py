@@ -56,11 +56,13 @@ def transformation():
     model = ScoringService.get_model(model_name)
     data = None
 
-    # Convert from CSV to pandas
+    # Convert from CSV/JSON to pandas
     if flask.request.content_type == 'text/csv':
         data = pd.read_csv(StringIO(flask.request.data.decode('utf-8')), header=None)
+        output_format = 'text/csv'
     elif flask.request.content_type == 'application/json':
         data = pd.read_json(StringIO(flask.request.data.decode('utf-8')))
+        output_format = 'application/json'
     else:
         return flask.Response(response='This predictor only supports CSV and JSON data', status=415, mimetype='text/plain')
 
@@ -77,10 +79,13 @@ def transformation():
     # Postprocessing Data
     predictions = [1 if prob > 0.5 else 0 for prob in predictions]
 
-    # Convert from numpy back to CSV
+    # Convert from numpy back to CSV or JSON
     out = StringIO()
-    pd.DataFrame({'results':predictions}).to_csv(out, header=False, index=False)
-    result = out.getvalue()
+    if output_format == 'text/csv':
+        pd.DataFrame({'results':predictions}).to_csv(out, header=False, index=False)
+        result = out.getvalue()
+    elif output_format == 'application/json':
+        result = json.dumps({'results':predictions})
 
     # Logging outputs and system metrics
     elapsed_time = time.time() - start_time
@@ -90,4 +95,4 @@ def transformation():
     logging.info(f'CPU Utilization: {cpu_pct}%')
     logging.info(f'Memory Usage: {mem_pct}%')
 
-    return flask.Response(response=result, status=200, mimetype='text/csv')
+    return flask.Response(response=result, status=200, mimetype=output_format)
