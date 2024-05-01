@@ -1,6 +1,7 @@
 # Machine-Learning-Pipeline
 Deploy and manage machine learning pipelines with Terraform using Amazon SageMaker.
 ![First Model Building and Pipeline Success](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/1d3ea726-8ba3-4e73-9c26-f21fded44e93)
+![Jupyter Notebook Invocation](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/7d419d59-f6c2-47cf-a90c-97a11f6c7e0f)
 - Algorithm allows for multiple acceptance of datasets from a variety of file formats.
 - Uses efficient training practices including GridSearchCV to analyze more robustly.
 - Leverages use of RandomForestClassifier to create a robust and efficient model.
