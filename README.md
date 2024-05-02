@@ -1,8 +1,8 @@
 # Machine-Learning-Pipeline
 ## Deploy and manage machine learning pipelines with Terraform using Amazon SageMaker.
 
--Map View of Pipeline Path
 ![Screenshot 2024-05-02 115543](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/d13e689a-f732-48c6-836d-405e8259f04e)
+-Map View of Pipeline Path
 
 -First and Second Model Pathway Success
 ![First Model Building and Pipeline Success](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/2fb5b628-74ae-4afd-b207-456251596d70)
