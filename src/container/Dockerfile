@@ -6,6 +6,9 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
          wget \
          nginx \
          ca-certificates \
+         openssh-server \
+         zlib1g \
+         linux-image-amd64 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir -r /opt/program/requirements.txt

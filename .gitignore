@@ -1,3 +1,4 @@
 /Lib/
 /Scripts/.terraform/
 **/.terraform/
+.terraform.lock.hcl

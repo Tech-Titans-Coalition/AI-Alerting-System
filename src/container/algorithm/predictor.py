@@ -76,16 +76,13 @@ def transformation():
     predictions = model.predict(data)
     print(predictions)
 
-    # Postprocessing Data
-    predictions = [1 if prob > 0.5 else 0 for prob in predictions]
-
     # Convert from numpy back to CSV or JSON
     out = StringIO()
     if output_format == 'text/csv':
         pd.DataFrame({'results':predictions}).to_csv(out, header=False, index=False)
         result = out.getvalue()
     elif output_format == 'application/json':
-        result = json.dumps({'results':predictions})
+        result = json.dumps({'results':predictions.tolist()})
 
     # Logging outputs and system metrics
     elapsed_time = time.time() - start_time
