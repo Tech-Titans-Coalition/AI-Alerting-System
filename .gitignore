@@ -2,3 +2,8 @@
 /Scripts/.terraform/
 **/.terraform/
 .terraform.lock.hcl
+.gitattributes
+/Scripts/
+.vscode
+terraform.tfstate
+terraform.tfstate.backup
