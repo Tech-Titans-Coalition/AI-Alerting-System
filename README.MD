@@ -131,3 +131,5 @@ cd terraform/infrastructure
 terraform destroy
 ```
 - Delete SageMaker Endpoints, you can do this through the AWS Console or through AWS CLI.
+
+### Thank you for checking out my repo and code!
