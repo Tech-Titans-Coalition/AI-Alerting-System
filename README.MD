@@ -118,4 +118,16 @@ print(label)
 
 ### Cleanup 
 
+SageMaker is extremely resource heavy so it incurs quite a cost. Due to this fact it is necessary to utilize Terraform destroy to disable the infrastructure. 
+Another note to make is that Terraform is only deploying our infrastructure so you will need to manually go through Sagemaker and delete your endpoints. Make sure that the data is removed from your buckets and they are both empty befor incurring Terraform destroy.
+I have provided detailed steps to fully shut down the pipeline below:
+- Delete the dataset in the S3 training bucket and all models you trained via the ML pipeline in the S3 bucket for the
+ models in the AWS Console or via the AWS CLI
+ 
+- Destroy the infrastructure created via Terraform
+```shell script
+cd terraform/infrastructure
 
+terraform destroy
+```
+- Delete SageMaker Endpoints, you can do this through the AWS Console or through AWS CLI.
