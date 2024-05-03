@@ -56,7 +56,7 @@ export AWS_PROFILE=<your_aws_cli_profile_name> #If already done at the step abov
 
 aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin <account_number>.dkr.ecr.eu-west-1.amazonaws.com
 
-docker build -t ml-training .
+docker build -t ml-training . #This is the name of your Docker Image you will be using feel free to edit this to whatever you like.
 
 docker tag ml-training:latest <account_number>.dkr.ecr.eu-west-1.amazonaws.com/<ecr_repository_name>:latest
 
