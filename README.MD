@@ -5,9 +5,13 @@ This is a multi-format algorithm designed to leverage the SageMaker service prov
 ### Pre-Requisites
 
 -Terraform Installed
+
 -AWS account
+
 -Python V3.7 or higher
+
 -Docker Desktop
+
 -WSL or Linux OS
 
 ### Deploy AWS Infrastructure with Terraform
