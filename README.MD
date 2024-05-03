@@ -62,3 +62,7 @@ docker tag ml-training:latest <account_number>.dkr.ecr.eu-west-1.amazonaws.com/<
 
 docker push <account_number>.dkr.ecr.eu-west-1.amazonaws.com/<ecr_repository_name>
 ```
+
+After you have successfully pushed to ECR do a scan on the image to make sure all dependencies are installed correctly and you have no critical errors.
+If your scan comes back with errors then the errors are most likely with how you constructed your environment in the Docker File/requirements.txt. Make sure you are using the latest versions and do not have deprecated resources.
+
