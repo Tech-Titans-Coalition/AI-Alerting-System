@@ -81,7 +81,33 @@ In order to train and run the ML pipeline, go to Step Functions and start the ex
 When we applied the Terraform configuration we created a State Machine to run our Step Functions, this is how we will execute the training of the model and the configuration of endpoints. Along with the State Machine we created we also
 deployed S3 buckets as retainers for model data as well as an output path for a trained model. This is what you see stated in the algorithm code as output_path, training_path, and model_path. You can check the health and status of the training job
 in the SageMaker console. You can also look and see the graph view in the execution console. If you run into errors training check the cloudwatch logs for more clarity on what issue is arising, however the step execution console will give you a detailed 
-view of where the error is. 
+view of where the error is and where it occured in the pipeline. 
 Once this is complete you will see a completed green pipeline and an endpoint that has the InService tag.
 
+### Invoke your endpoint
+For the next step you have freedom of choice with how you would like to invoke your endpoint you can place it in a python file or use a Jupyter Notebook provided by SageMaker.
+Here is a simple script for invoking the CSV model:
+```python
+import boto3
+from io import StringIO
+import pandas as pd
 
+client = boto3.client('sagemaker-runtime')
+
+endpoint_name = 'Your endpoint name' # Your endpoint name.
+content_type = "text/csv"   # The MIME type of the input data in the request body.
+
+payload = pd.DataFrame([[1.5,0.2,4.4,2.6]])
+csv_file = StringIO()
+payload.to_csv(csv_file, sep=",", header=False, index=False)
+payload_as_csv = csv_file.getvalue()
+
+response = client.invoke_endpoint(
+    EndpointName=endpoint_name, 
+    ContentType=content_type,
+    Body=payload_as_csv
+    )
+
+label = response['Body'].read().decode('utf-8')
+print(label)
+```
