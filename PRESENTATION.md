@@ -11,11 +11,11 @@
 ![Screenshot 2024-05-02 120144](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/5fb85a62-1e77-4d24-aaba-f94962a2ebe3)
 ![Screenshot 2024-05-02 120949](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/9eb039ed-6675-4075-b98a-4b3a161dfbfc)
 
-### Jupyter Notebook Functions for Invocation
-![Jupyter Notebook Invocation](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/7d419d59-f6c2-47cf-a90c-97a11f6c7e0f)
-
 ### Endpoint Configuration Success
 ![Screenshot 2024-05-02 115658](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/69eae33a-b7fc-4913-871f-494141f3b543)
+
+### Jupyter Notebook Functions for Invocation
+![Jupyter Notebook Invocation](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/7d419d59-f6c2-47cf-a90c-97a11f6c7e0f)
 
 - Algorithm allows for multiple acceptance of datasets from a variety of file formats.
 - Uses efficient training practices including GridSearchCV to analyze more robustly.
