@@ -49,6 +49,9 @@ For instance, you can see that in the CSV version I have used class as my entry 
 of data. This is especially useful for large datasets with multiple features. However, I have included suitable code for assessing large datasets as you are aware. You as the user may be well aware of this but as a note I needed to include this for clarity. 
 What I am presenting to you is a structure that is easily customizable based on your needs so feel free to do what you wish when deviating from this.
 
+-Example:
+![Screenshot 2024-05-03 132401](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/6f7c691a-65ae-4ee9-9621-c171225067ab)
+
 ### Push your Docker Image to ECR
 For the ML pipeline and Sagemaker to properly train the datasets we are feeding and provision an endpoint for inference, you need to provide a Docker image and store it in ECR.
 This operation functions much in the same way as a github repository used in an automation process to clone the image and use its contents for application.
