@@ -15,7 +15,8 @@ This is a multi-format algorithm designed to leverage the SageMaker service prov
 -WSL or Linux OS
 
 ### Deploy AWS Infrastructure with Terraform
-You are able to clone this repository or create your own Terraform configuration. For the sake of clarity for the rest of the demo we will assume you are cloning the repository. The configuration for this demo is located in this directory:
+You are able to clone this repository or create your own Terraform configuration. For the sake of clarity, we will assume you are cloning the repository for the rest of the demo. The configuration for this demo is located in this directory:
 ```shell script
 /terraform
 ```
+
