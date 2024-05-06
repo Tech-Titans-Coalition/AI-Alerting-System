@@ -47,9 +47,6 @@ Once this is done we can build and construct the Docker image and push it to ECR
 ### Push your Docker Image to ECR
 
 For the ML pipeline and Sagemaker to properly train the datasets we are feeding and provision an endpoint for inference, you need to provide a Docker image and store it in ECR.
-This operation functions much in the same way as a github repository used in an automation process to clone the image and use its contents for application.
-That being said if you make changes to your code for the algorithm you will need to repeat these steps everytime it is changed, much in the same way you would for Terraform. That probably goes without saying, but it is important to make a note of.
-Below I have outlined steps for building, tagging, and pushing to the ECR repository created in the Terraform code.
 
 ```shell script
 cd src/container
