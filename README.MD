@@ -27,7 +27,7 @@ First time initialization:
 to the name of your project, as well as the variable "region" if you want to deploy in another region.
 Further, you can change additional variables such as instance types for training and inference.
 
-After you have configured the file to your specific needs, follow the steps outlined below to deploy with Terraform.do a scan on the image to make sure all dependencies are installed correctly and you have no critical errorsIf your scan comes back with errors then the errors are most likely with how you constructed your environment in the Docker File/requirements.txt. Make sure you are using the latest versions and do not have deprecated resources.
+After you have configured the file to your specific needs, follow the steps outlined below to deploy with Terraform
 
 ```shell script
 export AWS_PROFILE=<your_aws_cli_profile_name>
