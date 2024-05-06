@@ -26,7 +26,7 @@ You are able to alter the step function code to suit whatever purpose you wish, 
 ```shell script
 {
   "datasetType": "iris",
-  "training_job_name": "my-training-job"
+  "training_job_name": "my-training-job" #Feel free to change these as they are just identifiers for jobs for organization 
 }
 
 {
