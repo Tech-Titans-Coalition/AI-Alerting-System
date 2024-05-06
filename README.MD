@@ -81,7 +81,7 @@ import pandas as pd
 
 client = boto3.client('sagemaker-runtime')
 
-endpoint_name = 'Your endpoint name' # Your endpoint name.
+endpoint_name = 'Your endpoint name' 
 content_type = "text/csv"   # The MIME type of the input data in the request body.
 
 payload = pd.DataFrame([[1.5,0.2,4.4,2.6]])
