@@ -35,7 +35,7 @@ You are able to alter the step function code to suit whatever purpose you wish, 
 }
 ```
 
-### Citation for documentation when effectively implementing GridSearchCV for use with RandomForestClassifier
+### Citation for documentation concerning effectively implementing GridSearchCV for use with RandomForestClassifier
 
 https://www.kaggle.com/code/sociopath00/random-forest-using-gridsearchcv
 
