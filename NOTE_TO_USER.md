@@ -15,8 +15,22 @@ When we applied the Terraform configuration we created a State Machine to run ou
 deployed S3 buckets as retainers for model data as well as an output path for a trained model. This is what you see stated in the algorithm code as output_path, training_path, and model_path. You can check the health and status of the training job
 in the SageMaker console. You can also look and see the graph view in the execution console. If you run into errors training check the cloudwatch logs for more clarity on what issue is arising, however the step execution console will give you a detailed 
 view of where the error is and where it occured in the pipeline. 
-Once this is complete you will see a completed green pipeline and an endpoint that has the InService tag.
 You are able to alter the step function code to suit whatever purpose you wish, I have implemented one for multi-format input but you are able to scale it.
+
+### Scripts for JSON input 
+
+```shell script
+{
+  "datasetType": "iris",
+  "training_job_name": "my-training-job"
+}
+
+{
+  "datasetType": "meteorite",
+  "training_job_name": "my-training-job"
+}
+```
+  
 
 -Example:
 
