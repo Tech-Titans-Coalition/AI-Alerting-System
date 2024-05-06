@@ -5,6 +5,10 @@ For instance, you can see that in the CSV version I have used class as my entry 
 of data. This is especially useful for large datasets with multiple features. However, I have included suitable code for assessing large datasets as you are aware. You as the user may be well aware of this but as a note I needed to include this for clarity. 
 What I am presenting to you is a structure that is easily customizable based on your needs so feel free to do what you wish when deviating from this.
 
+### Concerning ECR and Docker Images
+
+ECR functions in the same way as a github repository. ECR will mount the image and utilize what is contained in the image for use by Step Functions. It is important to note that when you make changes to the python code you will need to re upload your Docker file to ECR to utilize the latest changes you have made. Once the image is pushed to the ECR url specified in your terraform code it is best practice to do a scan on the image. If your scan comes back with critical errors then determine the nature of the issues and where they derive. Usually with these sorts of critical errors it has to do with the version of your dependencies make sure that you have the latest versions of your dependencies. The requirements.txt forms your environment so if you wish to add any dependencies or alter them, then start with that file. 
+
 -Example:
 
 ![Screenshot 2024-05-03 132545](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/5198ab53-782e-461c-a9a0-b75c8a491349)
