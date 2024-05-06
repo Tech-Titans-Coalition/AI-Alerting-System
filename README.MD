@@ -17,6 +17,7 @@ This is a multi-format algorithm designed to leverage the SageMaker service prov
 ### Deploy AWS Infrastructure with Terraform
 
 You are able to clone this repository or create your own Terraform configuration. For the sake of clarity, we will assume you are cloning the repository for the rest of the demo. The configuration for this demo is located in this directory:
+
 ```shell script
 /terraform
 ```
@@ -41,8 +42,8 @@ terraform plan
 terraform apply
 ```
 Once the Terraform has successfully applied check the output to see if the ECR repository was successfully constructed. The Terraform code provided includes an output of the repository URL that it was created at.
-Once that is done check ECR on AWS for successful completion and mounting.
-Once this is done we can build and construct the Docker image and push it to ECR.
+Once that is done check ECR on AWS for successful construction.
+Once this is done we can build and construct the Docker image and push it to ECR for mounting.
 
 ### Push your Docker Image to ECR
 
@@ -62,17 +63,13 @@ docker tag ml-training:latest <account_number>.dkr.ecr.eu-west-1.amazonaws.com/<
 docker push <account_number>.dkr.ecr.eu-west-1.amazonaws.com/<ecr_repository_name>
 ```
 
-After you have successfully pushed to ECR do a scan on the image to make sure all dependencies are installed correctly and you have no critical errors.
-If your scan comes back with errors then the errors are most likely with how you constructed your environment in the Docker File/requirements.txt. Make sure you are using the latest versions and do not have deprecated resources.
-
 ### Run the ML pipeline
 
 In order to train and run the ML pipeline, go to Step Functions and start the execution.
-When we applied the Terraform configuration we created a State Machine to run our Step Functions, this is how we will execute the training of the model and the configuration of endpoints. Along with the State Machine we created we also
-deployed S3 buckets as retainers for model data as well as an output path for a trained model. This is what you see stated in the algorithm code as output_path, training_path, and model_path. You can check the health and status of the training job
-in the SageMaker console. You can also look and see the graph view in the execution console. If you run into errors training check the cloudwatch logs for more clarity on what issue is arising, however the step execution console will give you a detailed 
-view of where the error is and where it occured in the pipeline. 
-Once this is complete you will see a completed green pipeline and an endpoint that has the InService tag.
+You will be able prompted to provide a selection for which data you would like to train based on a JSON input.
+I have included the scripts for my algorithm in the NOTE_TO_USER file.
+Once the training is complete you will see all green and at this point you can head over to the SageMaker console, then in the inference section click on endpoints.
+If the State Machine executed correctly you should see an endpoint with the InService tag.
 
 ### Invoke your endpoint
 For the next step you have freedom of choice with how you would like to invoke your endpoint you can place it in a python file or use a Jupyter Notebook provided by SageMaker.
