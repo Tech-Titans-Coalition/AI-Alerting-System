@@ -17,8 +17,7 @@ https://www.kaggle.com/code/sociopath00/random-forest-using-gridsearchcv
 
 https://numpy.org/doc/stable/user/whatisnumpy.html
 
-Explanation of Practices:
-
+-Explanation of Practices:
   -In essence what I tried to do is use the most efficient scanning practices to decifer the RandomForestClassifier, as it is a decision tree model that parses over a large amount of data. With numpy we can iterate over these large sets of data effectively and implement efficient         computation using principles of Linear Algebra, which would ultimately be more effective than python lists.
   -With GridSearchCV we can also use the best decisions coming out of RandomForestClassifier using a scoring method, which you can see with the declaration clf = grid_search.best perameter.
   -Label Encoder was also utilized due to the fact in datasets categorical columns can often vary. By doing this we can convert categorical columns into numerical ones so that they can be utilized by training algorithms, which only take in numerical data.
