@@ -276,99 +276,152 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
 
   definition = <<-EOF
   {
-  "Comment": "An AWS Step Function State Machine to train, build and deploy an Amazon SageMaker model endpoint",
-  "StartAt": "Configuration Lambda",
-  "States": {
-    "Configuration Lambda": {
-      "Type": "Task",
-      "Resource": "${aws_lambda_function.lambda_function.arn}",
-      "Parameters": {
-        "PrefixName": "${var.project_name}",
-        "input_training_path": "$.input_training_path"
+    "Comment": "An AWS Step Function State Machine to train, build, and deploy an Amazon SageMaker model endpoint",
+    "StartAt": "Configuration Lambda",
+    "States": {
+      "Configuration Lambda": {
+        "Type": "Task",
+        "Resource": "${aws_lambda_function.lambda_function.arn}",
+        "Parameters": {
+          "PrefixName": "${var.project_name}",
+          "input_training_path": "$.input_training_path"
         },
-      "Next": "Create Training Job",
-      "ResultPath": "$.training_job_name"
+        "Next": "Choose Dataset",
+        "ResultPath": "$.training_job_name"
       },
-    "Create Training Job": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::sagemaker:createTrainingJob.sync",
-      "Parameters": {
-        "TrainingJobName.$": "$.training_job_name",
-        "ResourceConfig": {
-          "InstanceCount": 1,
-          "InstanceType": "${var.training_instance_type}",
-          "VolumeSizeInGB": ${var.volume_size_sagemaker}
-        },
-        "HyperParameters": {
-          "test": "test"
-        },
-        "AlgorithmSpecification": {
-          "TrainingImage": "${aws_ecr_repository.ecr_repository.repository_url}",
-          "TrainingInputMode": "File"
-        },
-        "OutputDataConfig": {
-          "S3OutputPath": "s3://${aws_s3_bucket.bucket_output_models.bucket}"
-        },
-        "StoppingCondition": {
-          "MaxRuntimeInSeconds": 86400
-        },
-        "RoleArn": "${aws_iam_role.sagemaker_exec_role.arn}",
-        "InputDataConfig": [
-        {
-          "ChannelName": "training",
-          "ContentType": "text/csv",
-          "DataSource": {
-            "S3DataSource": {
-              "S3DataType": "S3Prefix",
-              "S3Uri": "s3://${aws_s3_bucket.bucket_training_data.bucket}",
-              "S3DataDistributionType": "FullyReplicated"
-            }
+      "Choose Dataset": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.datasetType",
+            "StringEquals": "iris",
+            "Next": "Train with Iris"
+          },
+          {
+            "Variable": "$.datasetType",
+            "StringEquals": "meteorite",
+            "Next": "Train with Meteorite"
           }
-        }
-        ]
+        ],
+        "Default": "Train with Iris"
       },
-      "Next": "Create Model"
-    },
-    "Create Model": {
-      "Parameters": {
-        "PrimaryContainer": {
-          "Image": "${aws_ecr_repository.ecr_repository.repository_url}",
-          "Environment": {},
-          "ModelDataUrl.$": "$.ModelArtifacts.S3ModelArtifacts"
+      "Train with Iris": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::sagemaker:createTrainingJob.sync",
+        "Parameters": {
+          "TrainingJobName.$": "$.training_job_name",
+          "ResourceConfig": {
+            "InstanceCount": 1,
+            "InstanceType": "${var.training_instance_type}",
+            "VolumeSizeInGB": ${var.volume_size_sagemaker}
+          },
+          "AlgorithmSpecification": {
+            "TrainingImage": "${aws_ecr_repository.ecr_repository.repository_url}",
+            "TrainingInputMode": "File"
+          },
+          "OutputDataConfig": {
+            "S3OutputPath": "s3://${aws_s3_bucket.bucket_output_models.bucket}"
+          },
+          "StoppingCondition": {
+            "MaxRuntimeInSeconds": 86400
+          },
+          "RoleArn": "${aws_iam_role.sagemaker_exec_role.arn}",
+          "InputDataConfig": [
+            {
+              "ChannelName": "training",
+              "ContentType": "text/csv",
+              "DataSource": {
+                "S3DataSource": {
+                  "S3DataType": "S3Prefix",
+                  "S3Uri": "s3://${aws_s3_bucket.bucket_training_data.bucket}",
+                  "S3DataDistributionType": "FullyReplicated"
+                }
+              }
+            }
+          ]
         },
-        "ExecutionRoleArn": "${aws_iam_role.sagemaker_exec_role.arn}",
-        "ModelName.$": "$.TrainingJobName"
+        "Next": "Create Model"
       },
-      "Resource": "arn:aws:states:::sagemaker:createModel",
-      "Type": "Task",
-      "ResultPath":"$.taskresult",
-      "Next": "Create Endpoint Config"
-    },
-    "Create Endpoint Config": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::sagemaker:createEndpointConfig",
-      "Parameters":{
-        "EndpointConfigName.$": "$.TrainingJobName",
-        "ProductionVariants": [
-        {
-          "InitialInstanceCount": 1,
-          "InstanceType": "${var.inference_instance_type}",
-          "ModelName.$": "$.TrainingJobName",
-          "VariantName": "AllTraffic"
-        }
-        ]
+      "Train with Meteorite": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::sagemaker:createTrainingJob.sync",
+        "Parameters": {
+          "TrainingJobName.$": "$.training_job_name",
+          "ResourceConfig": {
+            "InstanceCount": 1,
+            "InstanceType": "${var.training_instance_type}",
+            "VolumeSizeInGB": ${var.volume_size_sagemaker}
+          },
+          "HyperParameters": {
+            "learning_rate": "0.01"
+          },
+          "AlgorithmSpecification": {
+            "TrainingImage": "${aws_ecr_repository.ecr_repository.repository_url}",
+            "TrainingInputMode": "File"
+          },
+          "OutputDataConfig": {
+            "S3OutputPath": "s3://${aws_s3_bucket.bucket_output_models.bucket}"
+          },
+          "StoppingCondition": {
+            "MaxRuntimeInSeconds": 86400
+          },
+          "RoleArn": "${aws_iam_role.sagemaker_exec_role.arn}",
+          "InputDataConfig": [
+            {
+              "ChannelName": "training",
+              "ContentType": "json",
+              "DataSource": {
+                "S3DataSource": {
+                  "S3DataType": "S3Prefix",
+                  "S3Uri": "s3://${aws_s3_bucket.bucket_training_data.bucket}",
+                  "S3DataDistributionType": "FullyReplicated"
+                }
+              }
+            }
+          ]
+        },
+        "Next": "Create Model"
       },
-      "ResultPath":"$.taskresult",
-      "Next":"Create Endpoint"
-    },
-    "Create Endpoint":{
-      "Type":"Task",
-      "Resource":"arn:aws:states:::sagemaker:createEndpoint",
-      "Parameters":{
-        "EndpointConfigName.$": "$.TrainingJobName",
-        "EndpointName.$": "$.TrainingJobName"
+      "Create Model": {
+        "Parameters": {
+          "PrimaryContainer": {
+            "Image": "${aws_ecr_repository.ecr_repository.repository_url}",
+            "Environment": {},
+            "ModelDataUrl.$": "$.ModelArtifacts.S3ModelArtifacts"
+          },
+          "ExecutionRoleArn": "${aws_iam_role.sagemaker_exec_role.arn}",
+          "ModelName.$": "$.TrainingJobName"
+        },
+        "Resource": "arn:aws:states:::sagemaker:createModel",
+        "Type": "Task",
+        "ResultPath": "$.taskresult",
+        "Next": "Create Endpoint Config"
       },
-      "End": true
+      "Create Endpoint Config": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::sagemaker:createEndpointConfig",
+        "Parameters": {
+          "EndpointConfigName.$": "$.TrainingJobName",
+          "ProductionVariants": [
+            {
+              "InitialInstanceCount": 1,
+              "InstanceType": "${var.inference_instance_type}",
+              "ModelName.$": "$.TrainingJobName",
+              "VariantName": "AllTraffic"
+            }
+          ]
+        },
+        "ResultPath": "$.taskresult",
+        "Next": "Create Endpoint"
+      },
+      "Create Endpoint": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::sagemaker:createEndpoint",
+        "Parameters": {
+          "EndpointConfigName.$": "$.TrainingJobName",
+          "EndpointName.$": "$.TrainingJobName"
+        },
+        "End": true
       }
     }
   }
