@@ -8,3 +8,7 @@ What I am presenting to you is a structure that is easily customizable based on 
 -Example:
 
 ![Screenshot 2024-05-03 132545](https://github.com/Daazd/Machine-Learning-Pipeline-SageMaker/assets/148648249/5198ab53-782e-461c-a9a0-b75c8a491349)
+
+### Example Citation I used when figuring for using GridSearchCV with RandomForestClassifier
+
+https://www.kaggle.com/code/sociopath00/random-forest-using-gridsearchcv
