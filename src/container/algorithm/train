@@ -5,21 +5,29 @@ import json
 import pickle
 import sys
 import traceback
+import boto3
 import logging
 import time
-
-
 import pandas as pd
 import numpy as np
-from sklearn import tree
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import StandardScaler
+
+from io import BytesIO
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score, KFold, GridSearchCV
+from sklearn.cluster import KMeans, AffinityPropagation
 from numpy import mean, std
+
+# Initialize logging for the training job
+logging.basicConfig(level=logging.INFO)
+
+# S3 configurations
+s3_client = boto3.client('s3')
+bucket_name = 'our-data-lake-bucket'
+data_prefix = 'data' # Path within the data lake bucket where the data is stored
  
 
-# These are the paths to where SageMaker mounts interesting things in your container.
+# Paths for SageMaker to access the data and model
 
 prefix = '/opt/ml/'
 
@@ -28,108 +36,76 @@ output_path = os.path.join(prefix, 'output')
 model_path = os.path.join(prefix, 'model')
 param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
 
-# This algorithm has a single channel of input data called 'training'. Since we run in
-# File mode, the input files are copied to the directory specified here.
-channel_name='training'
-training_path = os.path.join(input_path, channel_name)
-logging.basicConfig(level=logging.INFO)
+# Loading data from data lake bucket
+def load_data_from_s3(bucket, prefix):
+    logging.info(f'Loading data from S3: {bucket}, prefix: {prefix}')
+    objects = s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
+    
+    if 'Contents' not in objects:
+        raise ValueError(f'No files found in {bucket} with {prefix}')
+    
+    data_frames = []
+    for obj in objects['Contents']:
+        key = obj['Key']
+        if key.endswith('.json'):
+            logging.info(f'Loading data from {key}')
+            response = s3_client.get_object(Bucket=bucket, Key=key)
+            content = response['Body'].read()
+            data_frame = pd.read_json(BytesIO(content))
+            data_frames.append(data_frame)
+    if not data_frames:
+        raise ValueError(f'No JSON files found in {bucket} with {prefix}')
+    return pd.concat(data_frames, ignore_index=True)
 
-# The function to execute the training.
+# Preprocessing data for training 
+def preprocess_data(data):
+    logging.info('Preprocessing data')
+    le = LabelEncoder()
+    
+    # Apply label encoding to categorical columns
+    for column in data.select_dtypes(include=['object']).columns:
+        data[column] = le.fit_transform(data[column].astype(str))
+        
+    # Handle missing values
+    data.fillna(data.mean(), inplace=True)
+    data.replace([np.inf, -np.inf], np.nan, inplace=True)
+    data.fillna(data.mean(), inplace=True)
+    
+    # Seperation of features and labels
+    # This assumes the label column is marked 'label', this can be replaced with the actual label column name
+    train_y = data['label']
+    train_X = data.drop('label', axis=1)
+    
+    return train_X, train_y
+
+# Our function to execute the training
 def train():
-    logging.info('Starting the training.')
+    logging.info('Training is executing')
     try:
         # Read in any hyperparameters that the user passed with the training job
-        # with open(param_path, 'r') as tc:
-         #   trainingParams = json.load(tc)
-
-        # Take the set of files and read them all into a single pandas dataframe
-        input_files = [ os.path.join(training_path, file) for file in os.listdir(training_path) ]
-        if len(input_files) == 0:
-            raise ValueError(('There are no files in {}.\n' +
-                              'This usually indicates that the channel ({}) was incorrectly specified,\n' +
-                              'the data specification in S3 was incorrectly specified or the role specified\n' +
-                              'does not have permission to access the data.').format(training_path, channel_name))
-        logging.info('Loading dataset')
-        # This needs to be modified based on the input file format
-        raw_data = [ pd.read_json(file) for file in input_files ]
-        #column_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'class']
-        #raw_data = [pd.read_csv(file, header=None, names=column_names) for file in input_files]
-        train_data = pd.concat(raw_data)
-
-        # Training for CSV file
-        ############################################################################################################
+        with open(param_path, 'r') as tc:
+            trainingParams = json.load(tc)
+            
+        # Load the data from the data lake bucket
+        train_data = load_data_from_s3(bucket_name, data_prefix)
         
-        #logging.info('Splitting into features and labels')
-        #train_y = train_data['class']
-        #train_X = train_data.drop('class', axis=1)
+        # Preprocess the data
+        train_X, train_y = preprocess_data(train_data)
         
-        #le = LabelEncoder()
-        #train_data['class'] = le.fit_transform(train_data['class'])
-        
-        ############################################################################################################
-        
-        # JSON file Config
-        ############################################################################################################
-        
-        le = LabelEncoder()
-        categorical_columns = ['name', 'nametype', 'recclass', 'fall']
-        for column in categorical_columns:
-            train_data[column] = le.fit_transform(train_data[column].astype(str))
-        
-        train_data['longitude'] = train_data['geolocation'].apply(lambda x: x['coordinates'][0] if isinstance(x, dict) else None)
-        train_data['latitude'] = train_data['geolocation'].apply(lambda x: x['coordinates'][1] if isinstance(x, dict) else None)
-        
-        train_data = train_data.drop('geolocation', axis=1)   
-         
-        # Training for the JSON file
-        logging.info('Splitting into features and labels')
-        train_y = train_data['fall']
-        
-        # Convert 'date' column to datetime
-        train_data['year'] = pd.to_datetime(train_data['year'], errors='coerce')
-        
-        # Replace NaT with a specific date, for example, the minimum valid date
-        train_data['year'] = train_data['year'].fillna(pd.Timestamp.min)
-
-        # Convert datetime to Unix timestamp
-        train_data['year'] = (train_data['year'] - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s')
-        
-        train_X = train_data.drop('fall', axis=1)
-        
-        # Check for NaN values
-        if train_X.isnull().values.any():
-            # Handle NaN values in numerical columns
-            for col in train_X.select_dtypes(include=[np.number]).columns:
-                train_X[col].fillna(train_X[col].mean(), inplace=True)
-            # Handle NaN values in categorical columns
-            for col in train_X.select_dtypes(include=['object']).columns:
-                train_X[col].fillna(train_X[col].mode()[0], inplace=True)
-
-        # Check for infinite values
-        if np.isinf(train_X.select_dtypes(include=[np.number])).values.any():
-            # Handle infinite values
-            train_X.replace([np.inf, -np.inf], np.nan, inplace=True)
-            for col in train_X.select_dtypes(include=[np.number]).columns:
-                train_X[col].fillna(train_X[col].mean(), inplace=True)
-
-        # Check for extremely large values
-        max_val = train_X.select_dtypes(include=[np.number]).max().max()
-        if max_val > np.finfo('float32').max:
-            # Handle large values
-            scaler = StandardScaler()
-            train_X[train_X.select_dtypes(include=[np.number]).columns] = scaler.fit_transform(train_X.select_dtypes(include=[np.number]))
-
-        # Handle categorical columns
-        le = LabelEncoder()
-        for col in train_X.select_dtypes(include=['object']).columns:
-            train_X[col] = le.fit_transform(train_X[col])
-        
-        ############################################################################################################
-        
-        # Preprocessing Data
+        # Standardize the data
         scaler = StandardScaler()
         train_X = scaler.fit_transform(train_X)
-
+        
+        # We are going to cluster here to reduce the number of centroids for KMeans, as the biggest problem with KMeans is the initial centroids being too far apart thus causing the algorithm to converge to a suboptimal solution
+        # First round of clustering to reduce initial centroids for KMeans and decrease euclidean distance
+        affinity_model = AffinityPropagation().fit(train_X)
+        cluster_centers_indices = affinity_model.cluster_centers_indices_
+        labels = affinity_model.labels_
+        
+        # Second round of clustering to get the final centroids and implement structured clustering
+        kmeans = KMeans(n_clusters=len(cluster_centers_indices)).fit(train_X)
+        train_X = np.concatenate((train_X, kmeans.labels_.reshape(-1, 1)), axis=1)
+        
         # Defining the Hyperparameter grid for Random Forest
         param_grid = {
             'n_estimators': [50, 100, 150],
@@ -137,7 +113,7 @@ def train():
         }
         
         clf = RandomForestClassifier()
-
+        
         # Defining the grid search
         grid_search = GridSearchCV(estimator=clf, param_grid=param_grid, n_jobs=-1, cv=5)
         logging.info('Training the model')
@@ -152,28 +128,27 @@ def train():
         # Evaluate the model and Cross-Validation
         cv = KFold(n_splits=10, random_state=1, shuffle=True)
         n_scores = cross_val_score(clf, train_X, train_y, scoring='accuracy', cv=cv, n_jobs=-1)
-
+        
         # Report the model performance
         logging.info('Accuracy: %.3f (%.3f)' % (mean(n_scores), std(n_scores)))
-
+        
         # Save the model
         logging.info('Saving the model')
-        with open(os.path.join(model_path, 'default-model.pkl'), 'wb') as out:
+        with open(os.path.join(model_path, 'random-forest-model.pkl'), 'wb') as out:
             pickle.dump(clf, out)
         logging.info('Training complete.')
     except Exception as e:
-        # Write out an error file. This will be returned as the failureReason in the
-        # DescribeTrainingJob result.
+        # Desgination of error file to write out. This will be returned as the failureReason in the DescribeTrainingJob result in the logs
         trc = traceback.format_exc()
         with open(os.path.join(output_path, 'failure'), 'w') as s:
             s.write('Exception during training: ' + str(e) + '\n' + trc)
-        #   logging.infoing this causes the exception to be in the training job logs, as well.
-        logging.info('Exception during training: ' + str(e) + '\n' + trc, file=sys.stderr)
-        # A non-zero exit code causes the training job to be marked as Failed.
+        # Printing this causes the exception to be in the training job logs, as well
+        logging.error('Exception during training: ' + str(e) + '\n' + trc, file=sys.stderr)
+        # A non-zero exit code causes the training job to be marked as Failed
         sys.exit(255)
-
+        
 if __name__ == '__main__':
     train()
-
-    # A zero exit code causes the job to be marked as succeeded.
+    
+    # A zero exit code causes the job to be marked as succeeded
     sys.exit(0)
