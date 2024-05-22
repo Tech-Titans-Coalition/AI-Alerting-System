@@ -83,3 +83,4 @@ variable volume_size_sagemaker {
   type = number
   description = "Volume size SageMaker instance in GB"
 }
+
